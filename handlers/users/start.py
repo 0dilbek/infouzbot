@@ -2,12 +2,11 @@ from aiogram import Router
 from aiogram.filters import CommandStart
 from aiogram.types import Message, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from filters.admin import IsAdmin
 
 router = Router()
 
 
-@router.message(CommandStart(), IsAdmin())
+@router.message(CommandStart())
 async def cmd_start(message: Message):
     b = InlineKeyboardBuilder()
     b.row(
