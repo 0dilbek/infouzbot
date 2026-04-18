@@ -22,6 +22,7 @@ import logging
 from itertools import combinations as iter_combinations
 
 from aiogram import Bot, F, Router
+from aiogram.client.telegram import PRODUCTION
 from aiogram.types import (
     CallbackQuery,
     InlineKeyboardButton,
@@ -115,7 +116,7 @@ async def _sorted_images(loc: Location) -> list:
 async def _file_url(file_id: str, bot: Bot) -> str | None:
     try:
         file = await bot.get_file(file_id)
-        url = f"https://api.telegram.org/file/bot{bot.token}/{file.file_path}"
+        url = PRODUCTION.file_url(bot.token, file.file_path)
         logging.info("_file_url: %s", url)
         return url
     except Exception as e:
