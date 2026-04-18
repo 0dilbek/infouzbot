@@ -1,13 +1,14 @@
 from aiogram import Router
 from aiogram.filters import CommandStart
 from aiogram.types import Message
+from filters.admin import IsAdmin
 
 from keyboards.admin_kb import admin_main_kb
 
 router = Router()
 
 
-@router.message(CommandStart())
+@router.message(CommandStart(), IsAdmin())
 async def cmd_start(message: Message):
     await message.answer(
         f"Salom, <b>{message.from_user.first_name}</b>! Admin panelga xush kelibsiz.",
