@@ -1,10 +1,12 @@
-from aiogram import Router, F
+from aiogram import Bot, Router, F
 from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import (
     Message, CallbackQuery,
     InlineQuery, InlineQueryResultArticle, InputTextMessageContent,
 )
+
+from utils.imgbb import upload_image
 
 from keyboards.admin_kb import (
     admin_main_kb, session_cancel_kb, cancel_kb,
@@ -232,10 +234,16 @@ async def _ask_images(message: Message, state: FSMContext):
 
 
 @router.message(AddLocation.images, F.photo)
-async def get_image(message: Message, state: FSMContext):
+async def get_image(message: Message, state: FSMContext, bot: Bot):
     data = await state.get_data()
     images: list = data.get("images", [])
-    images.append(message.photo[-1].file_id)
+
+    file_id = message.photo[-1].file_id
+    file = await bot.get_file(file_id)
+    image_bytes = await bot.download_file(file.file_path)
+    url = await upload_image(image_bytes.read())
+
+    images.append({"file_id": file_id, "url": url})
     await state.update_data(images=images)
     await message.answer(
         f"✅ Rasm qo'shildi ({len(images)} ta). Yana yuboring yoki tugating:",
@@ -263,9 +271,9 @@ async def _ask_mark_main(message: Message, state: FSMContext, images: list, curr
     await state.set_state(AddLocation.mark_main_image)
     await state.update_data(main_image_idx=current)
     # Send each uploaded photo so admin can see which number is which
-    for i, file_id in enumerate(images):
+    for i, img in enumerate(images):
         label = f"✅ Asosiy — rasm #{i + 1}" if i == current else f"Rasm #{i + 1}"
-        await message.answer_photo(photo=file_id, caption=label)
+        await message.answer_photo(photo=img["file_id"], caption=label)
     await message.answer(
         "📌 Qaysi rasm asosiy bo'lsin? Tanlang:",
         reply_markup=mark_main_image_kb(len(images), current),
@@ -564,11 +572,12 @@ async def save_location(callback: CallbackQuery, state: FSMContext):
         await PhoneNumbers.create(location=location, phone_number=phone)
 
     main_idx = data.get("main_image_idx", 0)
-    for i, file_id in enumerate(data.get("images", [])):
+    for i, img in enumerate(data.get("images", [])):
         await Images.create(
             location=location,
             image_local_path="",
-            image_tg_file_id=file_id,
+            image_tg_file_id=img["file_id"],
+            image_url=img.get("url"),
             is_main=(i == main_idx),
         )
 

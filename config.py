@@ -5,6 +5,7 @@ load_dotenv()
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 DB_URL = os.getenv("DB_URL")
+IMGBB_API_KEY = os.getenv("IMGBB_API_KEY", "")
 
 # Comma-separated Telegram user IDs that have admin access without a DB record.
 # Example in .env:  ADMIN_IDS=123456789,987654321

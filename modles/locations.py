@@ -40,6 +40,7 @@ class Images(Model):
     location = fields.ForeignKeyField("models.Location", related_name="images")
     image_local_path = fields.CharField(max_length=255)
     image_tg_file_id = fields.CharField(max_length=255)
+    image_url = fields.CharField(max_length=500, null=True)
     is_main = fields.BooleanField(default=False)
     
 class LocationTags(Model):

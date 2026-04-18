@@ -18,11 +18,9 @@ Qidiruv: barcha so'z kombinatsiyalari, uzunroq ibora = yuqori ball.
 Sahifalash: Telegram next_offset, 10 tadan.
 """
 
-import logging
 from itertools import combinations as iter_combinations
 
 from aiogram import Bot, F, Router
-from aiogram.client.telegram import PRODUCTION
 from aiogram.types import (
     CallbackQuery,
     InlineKeyboardButton,
@@ -113,17 +111,6 @@ async def _sorted_images(loc: Location) -> list:
     return sorted(imgs, key=lambda img: (not img.is_main,))
 
 
-async def _file_url(file_id: str, bot: Bot) -> str | None:
-    try:
-        file = await bot.get_file(file_id)
-        url = PRODUCTION.file_url(bot.token, file.file_path)
-        logging.info("_file_url: %s", url)
-        return url
-    except Exception as e:
-        logging.error("_file_url error: %s", e)
-        return None
-
-
 # ═══════════════════════════════════════════════════════════
 #  MATN FORMATLASH
 # ═══════════════════════════════════════════════════════════
@@ -171,7 +158,7 @@ def _brief_kb(loc_id: int) -> InlineKeyboardMarkup:
 # ═══════════════════════════════════════════════════════════
 
 @router.inline_query(~F.query.startswith("tag:"))
-async def handle_inline_query(inline_query: InlineQuery, bot: Bot):
+async def handle_inline_query(inline_query: InlineQuery):
     query = inline_query.query.strip()
     try:
         offset = int(inline_query.offset) if inline_query.offset else 0
@@ -203,8 +190,7 @@ async def handle_inline_query(inline_query: InlineQuery, bot: Bot):
         images = await _sorted_images(loc)
 
         if images:
-            url = await _file_url(images[0].image_tg_file_id, bot)
-            # Yashirin link — Telegram link preview sifatida rasmni ko'rsatadi
+            url = images[0].image_url
             msg_text = f'<a href="{url}">\u200b</a>{brief_text}' if url else brief_text
         else:
             url = None
